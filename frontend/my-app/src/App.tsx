@@ -1,88 +1,46 @@
 // src/App.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Product } from './Product';
+import axios from 'axios';
 
-const App: React.FC = () => {
+const App = () => {
     const [products, setProducts] = useState<Product[]>([]);
-    const [newProduct, setNewProduct] = useState<Product>(new Product());
-    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [desc, setdesc] = useState<String>("")
+    const [price, setprice] = useState<Number>(0)
+    const SERVER = "http://127.0.0.1:8000/products/"
+    const [refreshFlag, setrefreshFlag] = useState(false)
+    /** send data to server */
+    const sendData = (prod: Product) => axios.post(SERVER, prod).then(res => setProducts([...products, res.data]))
+    useEffect(() => { axios(SERVER).then(res => setProducts(res.data)) 
+    }, [refreshFlag])
 
-    const handleAddProduct = () => {
-        if (newProduct.desc && newProduct.price) {
-            setProducts([...products, { ...newProduct, id: products.length + 1 }]);
-            setNewProduct(new Product());
-        }
-    };
+    const updData = (prod: Product, id: Number = -1) => {
+        // console.log(id);
+        axios.put(SERVER + id + "/", prod).then(res => console.log((res.data)))
+        setrefreshFlag(!refreshFlag)
+    }
 
-    const handleEditProduct = (product: Product) => {
-        setEditingProduct(product);
-    };
-
-    const handleUpdateProduct = () => {
-        if (editingProduct && editingProduct.id !== undefined) {
-            setProducts(products.map(p => p.id === editingProduct.id ? editingProduct : p));
-            setEditingProduct(null);
-        }
-    };
-
-    const handleDeleteProduct = (id: number) => {
-        setProducts(products.filter(p => p.id !== id));
-    };
 
     return (
         <div>
-            <h1>Product Management</h1>
+            Desc <input onChange={(e) => setdesc(e.target.value)} />
+            price <input onChange={(e) => setprice(+e.target.value)} />
+            <button onClick={() => sendData({ desc: desc, price: price })}>send</button>
 
-            <div>
-                <h2>Add New Product</h2>
-                <input
-                    type="text"
-                    placeholder="Description"
-                    // value={newProduct.desc}
-                    onChange={(e) => setNewProduct({ ...newProduct, desc: e.target.value })}
-                />
-                <input
-                    type="number"
-                    placeholder="Price"
-                    // value={newProduct.price}
-                    onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) })}
-                />
-                <button onClick={handleAddProduct}>Add Product</button>
-            </div>
-
-            {editingProduct && (
-                <div>
-                    <h2>Edit Product</h2>
-                    <input
-                        type="text"
-                        placeholder="Description"
-                        // value={editingProduct.desc}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, desc: e.target.value })}
-                    />
-                    <input
-                        type="number"
-                        placeholder="Price"
-                        // value={editingProduct.price}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) })}
-                    />
-                    <button onClick={handleUpdateProduct}>Update Product</button>
-                </div>
-            )}
-
-            <div>
-                <h2>Product List</h2>
-                <ul>
-                    {products.map((product) => (
-                        <li >
-                            {product.desc} - ${""+product.price}
-                            <button onClick={() => handleEditProduct(product)}>Edit</button>
-                            <button >Delete</button>
-                        </li>
-                    ))}
-                </ul>
-            </div>
+            <h1>Products list</h1>
+            {/* List start */}
+            <ul>
+                {products.map((product, ind) => (
+                    <li key={ind}>
+                        {product.desc} - ${String(product.price)}
+                        <button >Delete</button>
+                        <button onClick={() => updData({ desc: desc, price: price }, product.id)}>upd</button>
+                    </li>
+                ))}
+            </ul>
+            {/* List end */}
         </div>
-    );
+    )
 };
 
 export default App;
