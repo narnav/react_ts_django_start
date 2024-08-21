@@ -15,11 +15,10 @@ const App = () => {
     }, [refreshFlag])
 
     const updData = (prod: Product, id: Number = -1) => {
-        axios.put(SERVER + id + "/", prod).then(res => console.log((res.data)))
-        setrefreshFlag(!refreshFlag)
+        axios.put(SERVER + id + "/", prod).then(res => setrefreshFlag(!refreshFlag))
     }
     const delData1 = ( id: Number = -1) => {
-        axios.delete(SERVER + id + "/").then(res =>setProducts([...products.filter(item => item.id != id)]))
+        axios.delete(SERVER + id + "/").then(res =>setProducts(products.filter(item => item.id != id)))
     }
 
     return (
