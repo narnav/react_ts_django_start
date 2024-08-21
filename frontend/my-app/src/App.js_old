@@ -1,0 +1,49 @@
+// src/App.js
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+// Define a basic structure for the product object
+const App = () => {
+    const [products, setProducts] = useState([{a:4,b:"5"}]);
+    const [desc, setDesc] = useState("");
+    const [price, setPrice] = useState(0);
+    const SERVER = "http://127.0.0.1:8000/products/";
+    const [refreshFlag, setRefreshFlag] = useState(false);
+
+    // Send data to server
+    const sendData = (prod) => {
+        axios.post(SERVER, prod).then(res => setProducts([...products, res.data]));
+    };
+
+    useEffect(() => {
+        axios(SERVER).then(res => setProducts(res.data));
+    }, [refreshFlag]);
+
+    const updData = (prod, id = -1) => {
+        axios.put(SERVER + id + "/", prod).then(res => console.log(res.data));
+        setRefreshFlag(!refreshFlag);
+    };
+
+    return (
+        <div>
+            Desc <input onChange={(e) => setDesc(e.target.value)} />
+            price <input type="number" onChange={(e) => setPrice(+e.target.value)} />
+            <button onClick={() => sendData({ desc: desc, price: price })}>send</button>
+
+            <h1>Products list</h1>
+            {/* List start */}
+            <ul>
+                {products.map((product, ind) => (
+                    <li key={ind}>
+                        {product.desc} - ${product.price}
+                        <button>Delete</button>
+                        <button onClick={() => updData({ desc: desc, price: price }, product.id,5,7)}>upd</button>
+                    </li>
+                ))}
+            </ul>
+            {/* List end */}
+        </div>
+    );
+};
+
+export default App;
